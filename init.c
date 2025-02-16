@@ -6,28 +6,23 @@
 /*   By: framador <framador@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 17:26:49 by framador          #+#    #+#             */
-/*   Updated: 2025/02/15 20:08:19 by framador         ###   ########.fr       */
+/*   Updated: 2025/02/16 19:55:06 by framador         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
-
-// void str_error(char *s)
-// {
-// 	write(2, s, ft_strlen(s));
-// }
 
 bool	init_philo(void)
 {
 	int	i;
 
 	i = 0;
-	vars()->philo = (t_philo **)malloc(vars()->n_philo * sizeof(t_philo*));
+	vars()->philo = (t_philo **)malloc(vars()->n_philo * sizeof(t_philo *));
 	if (!vars()->philo)
 		return (false);
 	while (i < vars()->n_philo)
 	{
-		vars()->philo[i] = (t_philo*)malloc(sizeof(t_philo));
+		vars()->philo[i] = (t_philo *)malloc(sizeof(t_philo));
 		if (!vars()->philo[i])
 			return (false);
 		vars()->philo[i]->n = i + 1;
@@ -37,9 +32,10 @@ bool	init_philo(void)
 	}
 	return (true);
 }
+
 void	thread_destroyer(void)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	while (i < vars()->n_philo)
@@ -48,9 +44,10 @@ void	thread_destroyer(void)
 		i++;
 	}
 }
+
 void	release_philo(void)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	while (vars()->philo && i < vars()->n_philo)
@@ -67,15 +64,15 @@ void	release_philo(void)
 
 bool	init_mutexs(void)
 {
-	if (pthread_mutex_init(&vars()->print, NULL)!= 0)
+	if (pthread_mutex_init(&vars()->print, NULL) != 0)
 		return (false);
-	if (pthread_mutex_init(&vars()->inc, NULL)!= 0)
+	if (pthread_mutex_init(&vars()->inc, NULL) != 0)
 		return (false);
-	if (pthread_mutex_init(&vars()->time, NULL)!= 0)
+	if (pthread_mutex_init(&vars()->time, NULL) != 0)
 		return (false);
-	if (pthread_mutex_init(&vars()->m_philo, NULL)!= 0)
+	if (pthread_mutex_init(&vars()->m_philo, NULL) != 0)
 		return (false);
-	if (pthread_mutex_init(&vars()->var, NULL)!= 0)
+	if (pthread_mutex_init(&vars()->var, NULL) != 0)
 		return (false);
 	return (true);
 }
