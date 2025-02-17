@@ -6,47 +6,34 @@
 /*   By: framador <framador@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/16 19:58:23 by framador          #+#    #+#             */
-/*   Updated: 2025/02/16 19:58:47 by framador         ###   ########.fr       */
+/*   Updated: 2025/02/17 20:23:52 by framador         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-long	get_time(void)
+bool	monitor_aux(t_philo *philo)
 {
-	struct timeval	tv;
-
-	gettimeofday(&tv, NULL);
-	return (tv.tv_sec * 1000 + tv.tv_usec / 1000);
+	pthread_mutex_lock(&vars()->time);
+	pthread_mutex_lock(&vars()->print);
+	if (get_time() - philo->lastmeal > vars()->ttdie)
+	{
+		printf("%ld %d died\n", get_time() - vars()->stime, philo->n);
+		pthread_mutex_lock(&vars()->var);
+		vars()->dead = true;
+		pthread_mutex_unlock(&vars()->var);
+		pthread_mutex_unlock(&vars()->print);
+		pthread_mutex_unlock(&vars()->time);
+		return (false);
+	}
+	pthread_mutex_unlock(&vars()->print);
+	pthread_mutex_unlock(&vars()->time);
+	return (true);
 }
 
-void	count_meals(void)
+void	*monitor(void *arg)
 {
-    int	i;
-    int	meals_count;
-
-        meals_count = 0;
-        i = 0;
-        while (i < vars()->n_philo)
-        {
-            pthread_mutex_lock(&vars()->m_philo);
-            if (vars()->philo[i]->meals >= vars()->nmeals)
-                meals_count++;
-            pthread_mutex_unlock(&vars()->m_philo);
-            i++;
-        }
-        if (meals_count == vars()->n_philo)
-        {
-            pthread_mutex_lock(&vars()->var);
-            vars()->dead = true;
-            pthread_mutex_unlock(&vars()->var);
-            return ;
-        }
-	}
-	
-	void	*monitor(void *arg)
-	{
-		int	i;
+	int	i;
 
 	(void)arg;
 	while (1)
@@ -54,21 +41,8 @@ void	count_meals(void)
 		i = 0;
 		while (i < vars()->n_philo)
 		{
-			pthread_mutex_lock(&vars()->time);
-			pthread_mutex_lock(&vars()->print);
-			if (get_time() - vars()->philo[i]->lastmeal > vars()->ttdie)
-			{
-				printf("%ld %d died\n", get_time() - vars()->timestamp,
-				vars()->philo[i]->n);
-				pthread_mutex_lock(&vars()->var);
-				vars()->dead = true;
-				pthread_mutex_unlock(&vars()->var);
-				pthread_mutex_unlock(&vars()->print);
-				pthread_mutex_unlock(&vars()->time);
+			if (!monitor_aux(vars()->philo[i]))
 				return (NULL);
-			}
-			pthread_mutex_unlock(&vars()->print);
-			pthread_mutex_unlock(&vars()->time);
 			i++;
 		}
 		pthread_mutex_lock(&vars()->var);
@@ -80,7 +54,7 @@ void	count_meals(void)
 		pthread_mutex_unlock(&vars()->var);
 		if (vars()->nmeals != -1)
 			count_meals();
-		ft_usleep(10);
+		ft_usleep(1);
 	}
 	return (NULL);
 }
@@ -89,7 +63,8 @@ void	eating_msg(t_philo *philo)
 {
 	pthread_mutex_lock(&vars()->time);
 	pthread_mutex_lock(&vars()->print);
-	printf("%ld %d is eating\n", get_time() - vars()->timestamp, philo->n);
+	if (!check_dead())
+		printf("%ld %d is eating\n", get_time() - vars()->stime, philo->n);
 	pthread_mutex_unlock(&vars()->print);
 	pthread_mutex_unlock(&vars()->time);
 	ft_usleep(vars()->tteat);
@@ -102,7 +77,8 @@ void	sleeping_msg(t_philo *philo)
 {
 	pthread_mutex_lock(&vars()->time);
 	pthread_mutex_lock(&vars()->print);
-	printf("%ld %d is sleeping\n", get_time() - vars()->timestamp, philo->n);
+	if (!check_dead())
+		printf("%ld %d is sleeping\n", get_time() - vars()->stime, philo->n);
 	pthread_mutex_unlock(&vars()->print);
 	pthread_mutex_unlock(&vars()->time);
 	ft_usleep(vars()->ttsleep);
@@ -112,8 +88,9 @@ void	thinking_ms(t_philo *philo)
 {
 	pthread_mutex_lock(&vars()->time);
 	pthread_mutex_lock(&vars()->print);
-	printf("%ld %d is thinking\n", get_time() - vars()->timestamp, philo->n);
+	if (!check_dead())
+		printf("%ld %d is thinking\n", get_time() - vars()->stime, philo->n);
 	pthread_mutex_unlock(&vars()->print);
 	pthread_mutex_unlock(&vars()->time);
-	ft_usleep(1);
+	ft_usleep(10);
 }

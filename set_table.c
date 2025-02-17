@@ -6,7 +6,7 @@
 /*   By: framador <framador@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 17:26:52 by framador          #+#    #+#             */
-/*   Updated: 2025/02/16 20:18:50 by framador         ###   ########.fr       */
+/*   Updated: 2025/02/17 20:27:40 by framador         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,26 +23,21 @@ void	grab_forks(t_philo *philo)
 	{
 		pthread_mutex_lock(&vars()->philo[left]->fork);
 		pthread_mutex_lock(&vars()->philo[right]->fork);
-		pthread_mutex_lock(&vars()->time); 
-		pthread_mutex_lock(&vars()->print);
-		printf("%ld %d has taken a fork\n", get_time() - vars()->timestamp, philo->n);
-		printf("%ld %d has taken a fork\n", get_time() - vars()->timestamp, philo->n);
-		pthread_mutex_unlock(&vars()->print);
-		pthread_mutex_unlock(&vars()->time); 
 	}
 	else
 	{
 		pthread_mutex_lock(&vars()->philo[right]->fork);
 		pthread_mutex_lock(&vars()->philo[left]->fork);
-		pthread_mutex_lock(&vars()->time); 
-		pthread_mutex_lock(&vars()->print);
-		printf("%ld %d has taken a fork\n", get_time() - vars()->timestamp, philo->n);
-		printf("%ld %d has taken a fork\n", get_time() - vars()->timestamp, philo->n);
-		pthread_mutex_unlock(&vars()->print);
-		pthread_mutex_unlock(&vars()->time); 
 	}
-	if (check_dead())
-		drop_forks(philo);
+	pthread_mutex_lock(&vars()->time);
+	pthread_mutex_lock(&vars()->print);
+	if (!check_dead())
+	{
+		printf("%ld %d grabbed a fork\n", get_time() - vars()->stime, philo->n);
+		printf("%ld %d grabbed a fork\n", get_time() - vars()->stime, philo->n);
+	}
+	pthread_mutex_unlock(&vars()->print);
+	pthread_mutex_unlock(&vars()->time);
 }
 
 void	drop_forks(t_philo *philo)
@@ -64,39 +59,24 @@ void	drop_forks(t_philo *philo)
 	}
 }
 
-int	ft_strcmp(char *s1, char *s2)
+bool	routine_aux(t_philo *philo)
 {
-	int	i;
-
-	i = 0;
-	while ((s1[i] || s2[i]) && s1[i] == s2[i])
-		i++;
-	return (s1[i] - s2[i]);
-}
-
-void	print_action(t_philo *philo, char *str)
-{
-	pthread_mutex_lock(&vars()->time);
-	pthread_mutex_lock(&vars()->print);
-	if (!ft_strcmp(str, "FORK"))
-		printf("%ld %d has taken a fork\n", get_time() - vars()->timestamp,
-			philo->n);
-	else
-		printf("%ld %d is %s\n", get_time() - vars()->timestamp, philo->n, str);
-	pthread_mutex_unlock(&vars()->print);
-	pthread_mutex_unlock(&vars()->time);
-}
-
-bool	check_dead(void)
-{
-	pthread_mutex_lock(&vars()->var);
-	if (vars()->dead)
+	if (check_dead())
+		return (false);
+	grab_forks(philo);
+	if (check_dead())
 	{
-		pthread_mutex_unlock(&vars()->var);
-		return (1);
+		drop_forks(philo);
+		return (false);
 	}
-	pthread_mutex_unlock(&vars()->var);
-	return (0);
+	pthread_mutex_lock(&vars()->m_philo);
+	pthread_mutex_lock(&vars()->time);
+	philo->lastmeal = get_time();
+	pthread_mutex_unlock(&vars()->time);
+	pthread_mutex_unlock(&vars()->m_philo);
+	eating_msg(philo);
+	drop_forks(philo);
+	return (true);
 }
 
 void	*routine(void *arg)
@@ -104,10 +84,6 @@ void	*routine(void *arg)
 	t_philo	*philo;
 
 	philo = (t_philo *)arg;
-	// if (philo->n == 1)
-	// {
-	// 	printf("n_meals:%d\n", vars()->nmeals);
-	// }
 	if (vars()->n_philo == 1)
 	{
 		print_action(philo, "FORK");
@@ -115,19 +91,11 @@ void	*routine(void *arg)
 		return (NULL);
 	}
 	if (philo->n % 2 == 0)
-		ft_usleep(100);
+		ft_usleep(3);
 	while (1)
 	{
-		if (check_dead())
+		if (!routine_aux(philo))
 			break ;
-		grab_forks(philo);
-		eating_msg(philo);
-		pthread_mutex_lock(&vars()->m_philo);
-		pthread_mutex_lock(&vars()->time);
-		philo->lastmeal = get_time();
-		pthread_mutex_unlock(&vars()->time);
-		pthread_mutex_unlock(&vars()->m_philo);
-		drop_forks(philo);
 		if (check_dead())
 			break ;
 		sleeping_msg(philo);
@@ -136,23 +104,6 @@ void	*routine(void *arg)
 		thinking_ms(philo);
 	}
 	return (NULL);
-}
-
-void	init_times(void)
-{
-	int	i;
-
-	i = 0;
-	pthread_mutex_lock(&vars()->time);
-	vars()->timestamp = get_time();
-	pthread_mutex_unlock(&vars()->time);
-	while (i < vars()->n_philo)
-	{
-		pthread_mutex_lock(&vars()->time);
-		vars()->philo[i]->lastmeal = vars()->timestamp;
-		pthread_mutex_unlock(&vars()->time);
-		i++;
-	}
 }
 
 bool	set_table(void)

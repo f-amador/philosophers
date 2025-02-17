@@ -6,7 +6,7 @@
 /*   By: framador <framador@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 17:26:46 by framador          #+#    #+#             */
-/*   Updated: 2025/02/16 20:12:13 by framador         ###   ########.fr       */
+/*   Updated: 2025/02/17 20:28:16 by framador         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ typedef struct s_vars
 	int				nmeals;
 	int				mealcount;
 	int				i;
-	long			timestamp;
+	long			stime;
 	bool			dead;
 	pthread_mutex_t	var;
 	pthread_mutex_t	print;
@@ -57,6 +57,8 @@ typedef struct s_vars
 
 int		ft_atoi(char *str);
 void	ft_usleep(long time_in_mls);
+void	count_meals(void);
+long	get_time(void);
 
 /*Initialization*/
 
@@ -64,7 +66,6 @@ t_vars	*vars(void);
 bool	set_table(void);
 bool	init_philo(void);
 void	release_philo(void);
-t_vars	*vars(void);
 bool	init_mutexs(void);
 void	thread_destroyer(void);
 
@@ -73,9 +74,15 @@ void	thread_destroyer(void);
 void	eating_msg(t_philo *philo);
 void	sleeping_msg(t_philo *philo);
 void	thinking_ms(t_philo *philo);
-long	get_time(void);
 void	*monitor(void *arg);
 void	drop_forks(t_philo *philo);
 bool	check_dead(void);
+
+/*AUX*/
+
+int		ft_strcmp(char *s1, char *s2);
+void	print_action(t_philo *philo, char *str);
+bool	check_dead(void);
+void	init_times(void);
 
 #endif
