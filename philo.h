@@ -28,6 +28,7 @@ typedef struct s_philo
 	bool			forks;
 	int				n;
 	long			lastmeal;
+	int				meals;
 	pthread_t		thread;
 	pthread_mutex_t	fork;
 }	t_philo;
@@ -40,6 +41,7 @@ typedef struct s_vars
 	long			ttsleep;
 	long			status;
 	int				nmeals;
+	int				mealcount;
 	int				i;
 	long			timestamp;
 	bool			dead;
@@ -73,5 +75,7 @@ void	sleeping_msg(t_philo *philo);
 void	thinking_ms(t_philo *philo);
 long	get_time(void);
 void	*monitor(void *arg);
+void	drop_forks(t_philo *philo);
+bool	check_dead(void);
 
 #endif

@@ -26,6 +26,7 @@ bool	init_philo(void)
 		if (!vars()->philo[i])
 			return (false);
 		vars()->philo[i]->n = i + 1;
+		vars()->philo[i]->meals = 0;
 		if (pthread_mutex_init(&vars()->philo[i]->fork, NULL) != 0)
 			return (false);
 		i++;
