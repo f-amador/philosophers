@@ -16,6 +16,69 @@ A multithreading solution to the classic Dining Philosophers problem, demonstrat
 | **Monitoring**     | Dedicated monitor thread for philosopher health checks                      |
 
 ---
+# **Introduction to Threads and Mutexes in the Dining Philosophers Problem**
+
+## **1. Threads: Parallel Execution**
+Threads are lightweight processes that allow a program to perform multiple operations **concurrently** within the same memory space. Unlike processes, threads share the same heap memory, file descriptors, and global variables, making communication between them faster but requiring careful synchronization.
+
+### **Key Properties of Threads:**
+- **Shared Memory**: All threads in a process can access the same variables.
+- **Independent Execution Flow**: Each thread runs its own code segment.
+- **Faster Context Switching**: Threads are cheaper to create and switch than processes.
+- **Potential Race Conditions**: Since threads share data, uncontrolled access can lead to inconsistencies.
+
+### **Threads in the Dining Philosophers Problem:**
+- Each philosopher is represented by a thread (`pthread_t`).
+- All philosopher threads run simultaneously, trying to eat, sleep, and think.
+- Threads must **synchronize** when accessing shared resources (forks).
+
+---
+
+## **2. Mutexes: Preventing Chaos**
+A **mutex (mutual exclusion lock)** ensures that only one thread can access a shared resource at a time. It prevents **race conditions** where multiple threads modify data unpredictably.
+
+### **How Mutexes Work:**
+1. **Lock**: A thread acquires a mutex before accessing a shared resource.
+   - If locked, other threads **wait** until it’s released.
+2. **Critical Section**: The thread performs operations safely.
+3. **Unlock**: The thread releases the mutex, allowing others to proceed.
+
+### **Mutexes in the Dining Philosophers Problem:**
+- Each fork is represented by a mutex (`pthread_mutex_t`).
+- A philosopher must **lock both adjacent forks** (left and right) to eat.
+- If a fork is already taken (locked), the philosopher **waits**.
+- Deadlock risk: If all philosophers grab one fork simultaneously, they **freeze** waiting for the second fork.
+
+---
+
+## **3. The Dining Philosophers Challenge**
+The problem demonstrates **synchronization issues** in concurrent systems:
+- **Deadlock**: All philosophers hold one fork and wait indefinitely.
+- **Starvation**: Some philosophers may never get both forks.
+- **Race Conditions**: Forks could be accessed by multiple threads at once.
+
+### **Solution Approach in This Project:**
+1. **Mutex-Protected Forks**:
+   - Each fork is a mutex (`pthread_mutex_t fork`).
+   - Philosophers must lock both left & right forks to eat.
+2. **Time Constraints**:
+   - `ttdie`: Maximum time a philosopher can go without eating.
+   - `tteat` / `ttsleep`: Fixed durations for eating and sleeping.
+3. **Monitor Thread**:
+   - Continuously checks if any philosopher has **starved** (`lastmeal > ttdie`).
+   - If so, terminates the simulation.
+
+
+---
+
+
+## **4. Visualizing Thread & Mutex Interaction**
+
+### **Key Takeaways:**
+- Threads enable **concurrent execution** but require synchronization.
+- Mutexes **prevent race conditions** by enforcing exclusive access.
+- The Dining Philosophers problem illustrates **real-world concurrency challenges** (deadlock, starvation).
+- This project implements a **deadlock-free solution** using mutexes and monitoring.
 
 ## 🖥️ System Architecture
 
